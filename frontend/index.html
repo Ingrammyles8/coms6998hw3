@@ -1,0 +1,133 @@
+<!doctype html>
+<head>
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.808.0.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script type="text/javascript">
+
+//Bucket Configurations
+
+ var bucketName = "coms6998hw3b2";
+ var bucketRegion = "us-east-1";
+ var IdentityPoolId = "us-east-1:5a4d8990-e3e7-4c6a-86da-ae36d61cea43";
+
+ AWS.config.update({
+                region: bucketRegion,
+                credentials: new AWS.CognitoIdentityCredentials({
+                IdentityPoolId: IdentityPoolId
+                })
+            });
+
+            var s3 = new AWS.S3({
+                apiVersion: '2006-03-01',
+                params: {Bucket: bucketName}
+        });
+</script>
+</head>
+<body>
+    <!-- A functional html code-->
+    <div>
+        <input type="file" id="fileUpload">
+    </div>
+
+    <div>
+    <button onclick="s3upload()">Submit Photo</button>
+    </div>
+
+    <progress max=”100” value=”0”></progress>
+
+    <script type="text/javascript">
+
+      function s3upload() {  
+                var files = document.getElementById('fileUpload').files;
+                if (files) 
+                {
+                    console.log("reached this point")
+                    var file = files[0];
+                    var fileName = file.name;
+                    var filePath = fileName;
+                    //var fileUrl = 'https://' + BUCKET_REGION + '.amazonaws.com/coms6998hw3b2/' +  filePath;
+                    //console.log(fileUrl)
+            
+                    s3.upload({
+                                    Key: filePath,
+                                    Body: file,
+                                    ACL: 'public-read'
+                                }, function(err, data) {
+                                    if(err) {
+                                        reject('error');
+                                    }
+                                    
+                                    alert('Successfully Uploaded!');
+                                }).on('httpUploadProgress', function (progress) {
+                                    var uploaded = parseInt((progress.loaded * 100) / progress.total);
+                                    $("progress").attr('value', uploaded);
+                                });
+                }
+      };
+    </script>
+
+    <main>
+      <button id="button">Start listening</button>
+      <div id="result"></div>
+      <p id="message" hidden aria-hidden="true">
+        Your browser doesn't support Speech Recognition. Sorry.
+      </p>
+    </main>
+<form action="https://ho3srmu1pl.execute-api.us-east-1.amazonaws.com/prod" method="post">
+  <label for="fname">Search for Images:</label><br>
+  <input type="text" id="search" name="search"><br>
+  <input type="submit" value="Submit">
+</form>
+
+<script>
+      // Your code goes here
+      window.addEventListener("DOMContentLoaded", () => {
+      var input = document.getElementById('search');
+      const button = document.getElementById("button");
+      const result = document.getElementById("result");
+      const main = document.getElementsByTagName("main")[0];
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+      if (typeof SpeechRecognition === "undefined") {
+        button.remove();
+        const message = document.getElementById("message");
+        message.removeAttribute("hidden");
+        message.setAttribute("aria-hidden", "false");
+      } else {
+        let listening = false;
+        const recognition = new SpeechRecognition();
+        const start = () => {
+          recognition.start();
+          button.textContent = "Stop listening";
+          main.classList.add("speaking");
+        };
+        const stop = () => {
+          recognition.stop();
+          button.textContent = "Start listening";
+          main.classList.remove("speaking");
+        };
+        const onResult = event => {
+          result.innerHTML = "";
+          for (const res of event.results) {
+            const text = document.createTextNode(res[0].transcript);
+            const p = document.createElement("p");
+            if (res.isFinal) {
+              p.classList.add("final");
+            }
+            p.appendChild(text);
+            result.appendChild(p);
+        }
+        input.value = result.innerHTML;
+    }
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.addEventListener("result", onResult);
+
+    button.addEventListener("click", () => {
+            listening ? stop() : start();
+            listening = !listening;
+          });
+  }
+});
+    </script>
+</body>
+</html>
