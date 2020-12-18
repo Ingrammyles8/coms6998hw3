@@ -5,7 +5,7 @@ from elasticsearch import Elasticsearch, RequestsHttpConnection
 from aws_requests_auth.aws_auth import AWSRequestsAuth
 from aws_requests_auth.boto_utils import BotoAWSRequestsAuth
 						  
-						  
+print("hi")					  
 PHOTOS_BUCKET = "coms6998hw3b2"
 
 def detect_labels(fileName):
